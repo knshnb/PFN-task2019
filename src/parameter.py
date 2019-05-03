@@ -1,0 +1,11 @@
+# hyper parameters
+ALPHA = 0.001
+EPS = 0.001
+SIGMA = 0.4
+ETA = 0.9
+MINIBATCH_SIZE = 20
+
+# constants
+S_LIMIT = 500
+TRAIN_NUM = 1500
+TEST_NUM = 500
