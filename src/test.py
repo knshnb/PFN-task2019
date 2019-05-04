@@ -1,12 +1,56 @@
 import unittest
-from factory import *
-
+import numpy as np
 from gnn import GraphNeuralNetwork
+
+IDENTITY_WEIGHT = np.array([
+    [1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1],
+], dtype=np.float64)
+
+SAMPLE_GRAPH = np.array([
+    [0, 1, 0, 0],
+    [1, 0, 1, 0],
+    [0, 1, 0, 0],
+    [0, 0, 0, 0],
+])
+
+SAMPLE_OUT = np.array([
+    [
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    [
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [2, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    [
+        [2, 0, 0, 0, 0, 0, 0, 0],
+        [2, 0, 0, 0, 0, 0, 0, 0],
+        [2, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    [
+        [2, 0, 0, 0, 0, 0, 0, 0],
+        [4, 0, 0, 0, 0, 0, 0, 0],
+        [2, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+])
 
 class TestGraphNeuralNetwork(unittest.TestCase):
     def test_aggregate(self):
         gnn = GraphNeuralNetwork()
-        gnn.W = IDENTITY_WEIGHT
+        gnn.params["W"] = IDENTITY_WEIGHT
         H = np.zeros((4, 8))
         H[:, 0] = 1
         for t in range(4):
@@ -15,7 +59,7 @@ class TestGraphNeuralNetwork(unittest.TestCase):
 
     def test_get_embedding(self):
         gnn = GraphNeuralNetwork()
-        gnn.W = IDENTITY_WEIGHT
+        gnn.params["W"] = IDENTITY_WEIGHT
         for t in range(4):
             gnn.T = t
             out = gnn.get_embedding(SAMPLE_GRAPH)
