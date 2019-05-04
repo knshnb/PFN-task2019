@@ -1,3 +1,5 @@
+import os
+import pickle
 import numpy as np
 
 from gnn import GraphNeuralNetwork
@@ -19,20 +21,22 @@ def read_label(idx):
     return int(f.read())
 
 # (loss, accuracy)の平均を計算
-def test(gnn):
+def test(gnn, test_range=range(TRAIN_NUM, TRAIN_NUM + TEST_NUM)):
     loss_acc = 0.0
     accuracy_acc = 0.0
-    for i in range(TRAIN_NUM, TRAIN_NUM + TEST_NUM):
+    for i in test_range:
         graph = read_graph(i)
         label = read_label(i)
         loss_acc += gnn.loss(graph, label)
         accuracy_acc += gnn.predict(graph) == label
-    return loss_acc[0] / TEST_NUM, accuracy_acc / TEST_NUM
+    return loss_acc[0] / len(test_range), accuracy_acc / len(test_range)
 
-def train(gnn, epoch_num=100):
+def test_train_data(gnn):
+    return test(gnn, test_range=range(0, TRAIN_NUM))
+
+def train(gnn, epoch_num=100, print_train_loss=False):
     random_idx = np.arange(TRAIN_NUM)
     for epoch in range(epoch_num):
-        print("epoch: {}".format(epoch))
         np.random.shuffle(random_idx)
         iter_num = TRAIN_NUM // MINIBATCH_SIZE
         for mb_idx in range(iter_num):
@@ -43,8 +47,17 @@ def train(gnn, epoch_num=100):
             gnn.gradient_descent(minibatch)
             # 1 epoch中に2回testを計算
             if mb_idx in [0, iter_num // 2]:
-                print(test(gnn))
+                print("test: {}".format(test(gnn)))
+                if print_train_loss:
+                    print("train: {}".format(test_train_data(gnn)))
 
 if __name__ == "__main__":
-    gnn = GraphNeuralNetwork(Momentum())
-    train(gnn)
+    for i in range(3):
+        print("{}th model".format(i))
+        gnn = GraphNeuralNetwork(Momentum())
+        train(gnn, epoch_num=5)
+        path_name = "model/model{}.pickle".format(i)
+        os.makedirs(os.path.dirname(path_name), exist_ok=True)
+        with open(path_name, mode="wb") as f:
+            pickle.dump(gnn, f)
+        print("{} saved!".format(path_name))
