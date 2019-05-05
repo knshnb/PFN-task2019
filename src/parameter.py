@@ -4,6 +4,9 @@ EPS = 0.001
 SIGMA = 0.4
 ETA = 0.9
 MINIBATCH_SIZE = 20
+BETA1 = 0.9
+BETA2 = 0.999
+ADAM_EPS = 1e-8
 
 # constants
 S_LIMIT = 500

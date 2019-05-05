@@ -4,7 +4,7 @@ import numpy as np
 
 from gnn import GraphNeuralNetwork
 from parameter import MINIBATCH_SIZE, TRAIN_NUM, TEST_NUM
-from optimizer import SGD, Momentum
+from optimizer import SGD, Momentum, Adam
 
 # シャフルして、始めの{TRAIN_NUM}個を訓練に、残り{TEST_NUM}個をテストに使用
 SHUFFLED_INDEX = [
@@ -52,10 +52,10 @@ def train(gnn, epoch_num=100, print_train_loss=False):
                     print("train: {}".format(test_train_data(gnn)))
 
 if __name__ == "__main__":
-    for i in range(3):
+    for i in range(5):
         print("{}th model".format(i))
-        gnn = GraphNeuralNetwork(Momentum())
-        train(gnn, epoch_num=5)
+        gnn = GraphNeuralNetwork(Adam())
+        train(gnn, epoch_num=100)
         path_name = "model/model{}.pickle".format(i)
         os.makedirs(os.path.dirname(path_name), exist_ok=True)
         with open(path_name, mode="wb") as f:
