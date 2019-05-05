@@ -25,38 +25,38 @@ class GraphNeuralNetwork:
         self.optimizer = optimizer
 
     # 集約1, 集約2
-    def aggregate(self, adj, H):
+    def _aggregate(self, adj, H):
         support = np.dot(adj, H)
         return ReLU(np.dot(support, self.params["W"]))
 
     # READOUT
-    def readout(self, H):
+    def _readout(self, H):
         return H.sum(axis=0)
     
     # 縮約を繰り返しREADOUTすることでh_Gを得る
-    def get_embedding(self, adj):
+    def _get_embedding(self, adj):
         # 特徴ベクトルは初めの値のみ0、それ以外は1に設定
         H = np.zeros((adj.shape[0], self.params["W"].shape[0]))
         H[:, 0] = 1
         for _ in range(self.T):
-            H = self.aggregate(adj, H)
-        return self.readout(H)
+            H = self._aggregate(adj, H)
+        return self._readout(H)
 
     # グラフの2値分類問題の確率値pを得る
-    def get_p(self, adj):
-        s = np.dot(self.params["A"], self.get_embedding(adj)) + self.params["b"]
+    def _get_p(self, adj):
+        s = np.dot(self.params["A"], self._get_embedding(adj)) + self.params["b"]
         return sigmoid(s)
 
     def predict(self, adj):
-        return 1 if self.get_p(adj) > 0.5 else 0
+        return 1 if self._get_p(adj) > 0.5 else 0
 
     # sから損失を直接求める
     def loss(self, adj, y):
-        s = np.dot(self.params["A"], self.get_embedding(adj)) + self.params["b"]
+        s = np.dot(self.params["A"], self._get_embedding(adj)) + self.params["b"]
         return binary_cross_entropy(s, y)
 
     # param全てについてloss関数を数値微分
-    def numerical_grad(self, adj, y):
+    def _numerical_grad(self, adj, y):
         grad = {}
         for key, param in self.params.items():
             grad[key] = np.empty_like(param)
@@ -68,9 +68,9 @@ class GraphNeuralNetwork:
         return grad
 
     # 複数データについての勾配の平均
-    def numerical_grad_minibatch(self, data):
-        grads = [self.numerical_grad(d[0], d[1]) for d in data]
+    def _numerical_grad_minibatch(self, data):
+        grads = [self._numerical_grad(d[0], d[1]) for d in data]
         return {key: np.mean([grad[key] for grad in grads]) for key in self.params}
 
     def gradient_descent(self, data):
-        self.optimizer.update(self.params, self.numerical_grad_minibatch(data))
+        self.optimizer.update(self.params, self._numerical_grad_minibatch(data))

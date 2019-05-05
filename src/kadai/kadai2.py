@@ -13,6 +13,6 @@ if __name__ == "__main__":
         print("[{}th iteration] loss: {}, p: {}".format(
             i,
             gnn.loss(graph, label)[0],
-            gnn.get_p(graph)[0],
+            gnn._get_p(graph)[0],
         ))
         gnn.gradient_descent([(graph, label)])
