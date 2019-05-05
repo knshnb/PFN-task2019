@@ -20,42 +20,39 @@ def read_label(idx):
     f = open(filename, "r")
     return int(f.read())
 
+def read_train_data():
+    return np.array([(read_graph(i), read_label(i)) for i in range(0, TRAIN_NUM)])
+
+def read_test_data():
+    return np.array([(read_graph(i), read_label(i)) for i in range(TRAIN_NUM, TRAIN_NUM + TEST_NUM)])
+
 # (loss, accuracy)の平均を計算
-def test(gnn, test_range=range(TRAIN_NUM, TRAIN_NUM + TEST_NUM)):
-    loss_acc = 0.0
-    accuracy_acc = 0.0
-    for i in test_range:
-        graph = read_graph(i)
-        label = read_label(i)
-        loss_acc += gnn.loss(graph, label)
-        accuracy_acc += gnn.predict(graph) == label
-    return loss_acc[0] / len(test_range), accuracy_acc / len(test_range)
+def test(gnn, data):
+    loss_mean = np.mean([gnn.loss(g, l) for g, l in data])
+    accuracy_mean = np.mean([gnn.predict(g) == l for g, l in data])
+    return loss_mean, accuracy_mean
 
-def test_train_data(gnn):
-    return test(gnn, test_range=range(0, TRAIN_NUM))
-
-def train(gnn, epoch_num=100, print_train_loss=False):
-    random_idx = np.arange(TRAIN_NUM)
+def train(gnn, train_data, test_data, epoch_num=100, print_train_loss=False):
     for epoch in range(epoch_num):
-        np.random.shuffle(random_idx)
+        np.random.shuffle(train_data)
         iter_num = TRAIN_NUM // MINIBATCH_SIZE
         for mb_idx in range(iter_num):
-            minibatch = []
-            for i in range(mb_idx * MINIBATCH_SIZE, (mb_idx + 1) * MINIBATCH_SIZE):
-                filenum = random_idx[i]
-                minibatch.append((read_graph(filenum), read_label(filenum)))
+            minibatch = train_data[mb_idx * MINIBATCH_SIZE : (mb_idx + 1) * MINIBATCH_SIZE]
             gnn.gradient_descent(minibatch)
             # 1 epoch中に2回testを計算
             if mb_idx in [0, iter_num // 2]:
-                print("test: {}".format(test(gnn)))
+                print("test: {}".format(test(gnn, test_data)))
                 if print_train_loss:
-                    print("train: {}".format(test_train_data(gnn)))
+                    print("train: {}".format(test(gnn, train_data)))
 
 if __name__ == "__main__":
+    train_data = read_train_data()
+    test_data = read_test_data()
+
     for i in range(5):
         print("{}th model".format(i))
         gnn = GraphNeuralNetwork(Adam())
-        train(gnn, epoch_num=100)
+        train(gnn, train_data, test_data, epoch_num=100)
         path_name = "model/model{}.pickle".format(i)
         os.makedirs(os.path.dirname(path_name), exist_ok=True)
         with open(path_name, mode="wb") as f:
